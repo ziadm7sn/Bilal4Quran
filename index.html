@@ -21,8 +21,8 @@
 
         <section class="search-section">
             <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="أدخل الكلمة أو الجملة المراد البحث عنها...">
-                <button id="searchBtn" class="search-btn">بحث</button>
+                <input type="text" id="searchInput" class="search-input" placeholder="جاري تجهيز بيانات القرآن..." disabled>
+                <button id="searchBtn" class="search-btn" disabled>بحث</button>
             </div>
             <div class="search-controls">
                 <div class="control-group">
@@ -47,7 +47,7 @@
 
         <section class="results-section">
             <div id="loadingDiv" class="loading" style="display: none;"></div>
-            <div id="errorDiv" style="display: none;"></div>
+            <div id="errorDiv" class="error-message" style="display: none;"></div>
             <div id="resultsDiv" style="display: none;">
                 <div id="resultsInfo" class="results-info"></div>
                 <table class="results-table">
