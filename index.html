@@ -230,19 +230,7 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .loading-dots {
-            display: inline-block;
-            animation: loadingDots 1.5s infinite;
-        }
-
-        @keyframes loadingDots {
-            0%, 20% { content: ''; }
-            40% { content: '.'; }
-            60% { content: '..'; }
-            80%, 100% { content: '...'; }
-        }
-
+        
         .results-table {
             width: 100%;
             border-collapse: separate;
@@ -278,35 +266,13 @@
             z-index: 10;
         }
 
-        .results-table th:first-child {
-            border-top-left-radius: var(--border-radius);
-        }
-
-        .results-table th:last-child {
-            border-top-right-radius: var(--border-radius);
-        }
-
         .results-table td {
             padding: 25px 20px;
             border-bottom: 1px solid var(--border-color);
             vertical-align: top;
             transition: var(--transition-fast);
         }
-
-        .results-table tr:hover {
-            background: linear-gradient(135deg, #f8f9fa, #ffffff);
-            transform: scale(1.01);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .results-table tr:last-child td:first-child {
-            border-bottom-left-radius: var(--border-radius);
-        }
-
-        .results-table tr:last-child td:last-child {
-            border-bottom-right-radius: var(--border-radius);
-        }
-
+        
         .verse-text {
             font-family: 'Amiri', serif;
             font-size: 19px;
@@ -359,28 +325,6 @@
             padding: 20px !important;
             vertical-align: top;
             border-right: 1px solid var(--border-color);
-            position: relative;
-        }
-
-        .loading-spinner {
-            color: var(--secondary-color);
-            font-style: italic;
-            text-align: center;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .loading-spinner::before {
-            content: '';
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--border-color);
-            border-top: 2px solid var(--secondary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
         }
 
         .translation-text {
@@ -390,15 +334,6 @@
             color: var(--text-primary);
             line-height: 1.7;
             font-size: 14px;
-        }
-
-        .translation-error {
-            color: var(--accent-color);
-            font-style: italic;
-            text-align: center;
-            padding: 10px;
-            border-radius: var(--border-radius-small);
-            background: rgba(231, 76, 60, 0.1);
         }
 
         .translation-unavailable {
@@ -432,27 +367,9 @@
             transition: var(--transition-medium);
             min-width: 100px;
             box-shadow: var(--shadow-light);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .pagination-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: var(--transition-medium);
-        }
-
-        .pagination-btn:hover:not(:disabled)::before {
-            left: 100%;
         }
 
         .pagination-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--secondary-light), var(--secondary-color));
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
         }
@@ -460,118 +377,10 @@
         .pagination-btn:disabled {
             background: var(--text-light);
             cursor: not-allowed;
-            transform: none;
-            box-shadow: var(--shadow-light);
             opacity: 0.6;
         }
 
-        .pagination-btn:disabled::before {
-            display: none;
-        }
-
-        .pagination-btn:active:not(:disabled) {
-            transform: translateY(-1px);
-        }
-
-        /* تحسينات التصميم المتجاوب */
-        @media (max-width: 1024px) {
-            .container {
-                margin: 10px;
-                border-radius: var(--border-radius-small);
-            }
-
-            .header {
-                padding: 30px 20px;
-            }
-
-            .search-section {
-                padding: 30px 20px;
-            }
-
-            .results-section {
-                padding: 30px 20px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .search-container {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .search-input {
-                border-radius: var(--border-radius);
-            }
-
-            .search-btn {
-                border-radius: var(--border-radius);
-                padding: 15px 25px;
-            }
-
-            .results-table {
-                font-size: 14px;
-            }
-
-            .results-table th,
-            .results-table td {
-                padding: 15px 10px;
-            }
-
-            .verse-text {
-                font-size: 16px;
-                line-height: 1.8;
-            }
-
-            .translation-cell {
-                font-size: 12px;
-                padding: 15px 8px !important;
-            }
-
-            .pagination-controls {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .pagination-btn {
-                min-width: 200px;
-                padding: 15px 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.8rem;
-            }
-
-            .header p {
-                font-size: 0.9rem;
-            }
-
-            .search-section {
-                padding: 20px 15px;
-            }
-
-            .results-section {
-                padding: 20px 15px;
-            }
-
-            .results-table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            .verse-text {
-                font-size: 15px;
-                white-space: normal;
-            }
-        }
-
-        /* أنماط عناصر التحكم المحسنة */
+        /* أنماط عناصر التحكم */
         .search-controls {
             display: flex;
             justify-content: center;
@@ -592,7 +401,6 @@
             gap: 10px;
         }
 
-        /* تصميم Toggle Switch محسن */
         .toggle-label {
             display: flex;
             align-items: center;
@@ -612,7 +420,6 @@
             background: var(--text-light);
             border-radius: 24px;
             transition: var(--transition-medium);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .toggle-slider::before {
@@ -625,7 +432,6 @@
             background: white;
             border-radius: 50%;
             transition: var(--transition-medium);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .toggle-input:checked + .toggle-slider {
@@ -639,47 +445,14 @@
         .toggle-text {
             font-size: 14px;
             font-weight: 500;
-            color: var(--text-primary);
         }
-
-        /* تصميم الأزرار المحسن */
-        .control-btn {
-            padding: 10px 18px;
-            border: none;
-            border-radius: var(--border-radius-small);
-            font-size: 13px;
-            font-weight: 500;
-            font-family: 'Noto Sans Arabic', sans-serif;
-            cursor: pointer;
-            transition: var(--transition-medium);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: var(--shadow-light);
-        }
-
-        .clear-btn {
-            background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
-            color: white;
-        }
-
-        .clear-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
-        }
-
-        .btn-icon {
-            font-size: 14px;
-        }
-
-        /* تصميم Select محسن */
+        
         .select-label {
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 14px;
             font-weight: 500;
-            color: var(--text-primary);
         }
 
         .control-select {
@@ -687,50 +460,30 @@
             border: 2px solid var(--border-color);
             border-radius: var(--border-radius-small);
             font-size: 14px;
-            font-family: 'Noto Sans Arabic', sans-serif;
             background: white;
             cursor: pointer;
-            transition: var(--transition-fast);
-            box-shadow: var(--shadow-light);
         }
-
-        .control-select:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-
+        
+        /* تصميم متجاوب */
         @media (max-width: 768px) {
-            .search-controls {
-                flex-direction: column;
-                gap: 20px;
-                padding: 20px 15px;
-            }
-
-            .control-group {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .toggle-label {
-                justify-content: center;
-            }
+            .search-container { flex-direction: column; }
+            .search-controls { flex-direction: column; gap: 20px; }
+            .results-table { display: block; overflow-x: auto; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <header class="header">
             <h1>البحث في القرآن الكريم</h1>
             <p>ابحث عن أي كلمة أو جملة في كتاب الله العزيز</p>
-        </div>
+        </header>
 
-        <div class="search-section">
+        <section class="search-section">
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="أدخل الكلمة أو الجملة المراد البحث عنها...">
                 <button id="searchBtn" class="search-btn">بحث</button>
             </div>
-
             <div class="search-controls">
                 <div class="control-group">
                     <label class="toggle-label">
@@ -739,7 +492,6 @@
                         <span class="toggle-text">تفعيل الترجمات الفرنسية</span>
                     </label>
                 </div>
-
                 <div class="control-group">
                     <label class="select-label">
                         النتائج لكل صفحة:
@@ -751,19 +503,13 @@
                     </label>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="results-section">
-            <div id="loadingDiv" class="loading" style="display: none;">
-                <div class="spinner"></div>
-                جاري البحث...
-            </div>
-
+        <section class="results-section">
+            <div id="loadingDiv" class="loading" style="display: none;"></div>
             <div id="errorDiv" style="display: none;"></div>
-
             <div id="resultsDiv" style="display: none;">
                 <div id="resultsInfo" style="text-align: center; margin-bottom: 20px; color: #2c3e50; font-weight: bold;"></div>
-
                 <table class="results-table">
                     <thead>
                         <tr>
@@ -773,15 +519,12 @@
                             <th style="width: 20%;">محمد نبيل رضوان</th>
                         </tr>
                     </thead>
-                    <tbody id="resultsTableBody">
-                    </tbody>
+                    <tbody id="resultsTableBody"></tbody>
                 </table>
-
                 <div id="paginationDiv" style="display: none; text-align: center; margin-top: 20px;">
                     <div style="margin-bottom: 15px;">
                         <span id="pageInfo" style="color: #2c3e50; font-weight: bold;"></span>
                     </div>
-
                     <div class="pagination-controls">
                         <button id="firstPageBtn" class="pagination-btn">الصفحة الأولى</button>
                         <button id="prevPageBtn" class="pagination-btn">السابق</button>
@@ -791,14 +534,14 @@
                     </div>
                 </div>
             </div>
-
-            <div id="noResultsDiv" class="no-results" style="display: none;">
-                لم يتم العثور على نتائج للبحث المطلوب
-            </div>
-        </div>
+            <div id="noResultsDiv" class="no-results" style="display: none;">لم يتم العثور على نتائج للبحث المطلوب</div>
+        </section>
     </div>
 
 <script>
+    // =========================================================================
+    // 1. DOM Elements & Global State
+    // =========================================================================
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     const loadingDiv = document.getElementById('loadingDiv');
@@ -809,15 +552,8 @@
     const translationsToggle = document.getElementById('translationsToggle');
     const resultsPerPageSelect = document.getElementById('resultsPerPageSelect');
 
-    // =========================================================================
-    // 1. المتغيرات العامة والحالة (Global State)
-    // =========================================================================
-
-    // بيانات القرآن
     let quranData = [];
     let isQuranDataLoaded = false;
-    
-    // بيانات الترجمات
     let translationsEnabled = true;
     let translationsData = {
         french_hameedullah: null,
@@ -829,13 +565,11 @@
         french_rashid: 'رشيد معاش',
         french_montada: 'محمد نبيل رضوان'
     };
-
-    // نظام الصفحات والبحث
     let allSearchResults = [];
     let currentPage = 1;
     let resultsPerPage = 10;
-    
-    // أسماء السور
+    let totalPages = 0;
+
     const suraNames = [
         'الفاتحة', 'البقرة', 'آل عمران', 'النساء', 'المائدة', 'الأنعام', 'الأعراف', 'الأنفال', 'التوبة', 'يونس',
         'هود', 'يوسف', 'الرعد', 'إبراهيم', 'الحجر', 'النحل', 'الإسراء', 'الكهف', 'مريم', 'طه',
@@ -852,18 +586,15 @@
     ];
 
     // =========================================================================
-    // 2. ربط الأحداث (Event Listeners)
+    // 2. Event Listeners
     // =========================================================================
-
     searchBtn.addEventListener('click', performSearch);
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') performSearch();
     });
     translationsToggle.addEventListener('change', () => {
         translationsEnabled = translationsToggle.checked;
-        if (allSearchResults.length > 0) {
-            displayPaginatedResults(); // إعادة عرض النتائج لإظهار/إخفاء الترجمات
-        }
+        if (allSearchResults.length > 0) displayPaginatedResults();
     });
     resultsPerPageSelect.addEventListener('change', () => {
         resultsPerPage = parseInt(resultsPerPageSelect.value, 10);
@@ -876,31 +607,62 @@
     document.getElementById('lastPageBtn').addEventListener('click', () => goToPage(totalPages));
 
     // =========================================================================
-    // 3. دوال تحميل البيانات (Data Loading Functions)
+    // 3. Data Loading & Parsing Functions
     // =========================================================================
+    
+    /**
+     * دالة ذكية لتحليل سطر CSV يمكن أن يحتوي على فواصل داخل النص المقتبس
+     */
+    function parseCsvLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"' && (i === 0 || line[i-1] !== '\\')) {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        result.push(current.trim());
+        return result;
+    }
 
     /**
-     * تحميل بيانات القرآن من ملف CSV. يتم تحميلها مرة واحدة فقط.
+     * تحميل ومعالجة ملف CSV واحد.
+     */
+    async function loadAndProcessCsv(filePath, processLine) {
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error(`لا يمكن تحميل الملف: ${filePath}`);
+        const csvText = await response.text();
+        const lines = csvText.trim().split('\n');
+        // تجاهل الأسطر التي تبدأ بـ # أو رأس الجدول (id,sura,...)
+        const dataLines = lines.filter(line => !line.startsWith('#') && !line.toLowerCase().startsWith('id,sura,aya'));
+        dataLines.forEach(processLine);
+    }
+
+    /**
+     * تحميل بيانات القرآن. يتم مرة واحدة فقط.
      */
     async function loadQuranData() {
         if (isQuranDataLoaded) return;
         try {
-            const response = await fetch('orthographic_v1.0.csv');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const csvText = await response.text();
-            const lines = csvText.trim().split('\n');
-            
-            quranData = lines.map(line => {
-                const parts = line.split(',');
-                const suraNumber = parseInt(parts[2], 10);
-                return {
-                    serialNumber: parseInt(parts[0], 10),
-                    suraNumber: suraNumber,
-                    ayahNumber: parseInt(parts[3], 10),
-                    ayahText: parts.slice(4).join(','),
-                    suraName: suraNames[suraNumber - 1] || `سورة ${suraNumber}`
-                };
+            await loadAndProcessCsv('orthographic_v1.0.csv', (line) => {
+                const parts = parseCsvLine(line);
+                if (parts.length >= 5) {
+                    const suraNumber = parseInt(parts[2], 10);
+                    quranData.push({
+                        serialNumber: parseInt(parts[0], 10),
+                        suraNumber: suraNumber,
+                        ayahNumber: parseInt(parts[3], 10),
+                        ayahText: parts[4].replace(/^"|"$/g, ''), // إزالة علامات الاقتباس
+                        suraName: suraNames[suraNumber - 1] || `سورة ${suraNumber}`
+                    });
+                }
             });
             isQuranDataLoaded = true;
             console.log(`تم تحميل ${quranData.length} آية بنجاح.`);
@@ -912,50 +674,42 @@
     }
 
     /**
-     * تحميل جميع ملفات الترجمة CSV وتحويلها إلى Map. يتم تحميل كل ملف مرة واحدة فقط.
+     * تحميل جميع ملفات الترجمة. يتم لكل ملف مرة واحدة فقط.
      */
     async function loadAllTranslationFiles() {
         const translationFilePaths = {
             french_hameedullah: 'translations/french_hameedullah.csv',
             french_rashid: 'translations/french_rashid.csv',
-            french_montada: 'translations/french_ridwan.csv' // تصحيح اسم الملف
+            french_montada: 'translations/french_ridwan.csv'
         };
 
-        const promises = Object.keys(translationFilePaths).map(async (key) => {
-            if (translationsData[key] === null) { // التحميل فقط إذا لم يكن محملاً
+        const loadPromises = Object.keys(translationFilePaths).map(async (key) => {
+            if (translationsData[key] === null) {
                 try {
-                    const response = await fetch(translationFilePaths[key]);
-                    if (!response.ok) throw new Error(`ملف ${key} غير موجود`);
-                    
-                    const csvText = await response.text();
-                    const lines = csvText.trim().split('\n');
                     const translationMap = new Map();
-                    
-                    lines.forEach(line => {
-                        const parts = line.split(',');
-                        const suraAyahKey = `${parts[0]}:${parts[1]}`; // e.g., "2:144"
-                        const text = parts.slice(2).join(',');
-                        translationMap.set(suraAyahKey, text);
+                    await loadAndProcessCsv(translationFilePaths[key], (line) => {
+                        const parts = parseCsvLine(line);
+                        if (parts.length >= 4) {
+                            const suraAyahKey = `${parts[1]}:${parts[2]}`;
+                            const text = parts[3].replace(/^"|"$/g, '');
+                            translationMap.set(suraAyahKey, text);
+                        }
                     });
-                    
                     translationsData[key] = translationMap;
                     console.log(`تم تحميل ملف ترجمة ${key} بنجاح.`);
                 } catch (error) {
                     console.error(`خطأ في تحميل ملف الترجمة ${key}:`, error);
-                    translationsData[key] = new Map(); // وضع خريطة فارغة لتجنب الأخطاء
+                    translationsData[key] = new Map();
                 }
             }
         });
-        await Promise.all(promises);
+        await Promise.all(loadPromises);
     }
-
+    
     // =========================================================================
-    // 4. دوال البحث والمنطق الأساسي (Core Logic)
+    // 4. Core Logic Functions
     // =========================================================================
-
-    /**
-     * تنفيذ عملية البحث الرئيسية.
-     */
+    
     async function performSearch() {
         const searchTerm = searchInput.value.trim();
         if (!searchTerm) {
@@ -964,18 +718,18 @@
         }
 
         hideAllResults();
-        loadingDiv.style.display = 'block';
+        setLoadingState(true, 'جاري البحث...');
         searchBtn.disabled = true;
 
         try {
-            await loadQuranData(); // التأكد من تحميل بيانات القرآن
+            await loadQuranData();
             const results = searchInQuran(searchTerm);
 
             if (results.length > 0) {
                 allSearchResults = results;
                 currentPage = 1;
                 if (translationsEnabled) {
-                    loadingDiv.innerHTML = '<div class="spinner"></div>جاري تحميل بيانات الترجمات...';
+                    setLoadingState(true, 'جاري تحميل بيانات الترجمات...');
                     await loadAllTranslationFiles();
                 }
                 displayPaginatedResults();
@@ -985,60 +739,44 @@
         } catch (error) {
             showError(`حدث خطأ أثناء البحث: ${error.message}`);
         } finally {
-            loadingDiv.style.display = 'none';
-            loadingDiv.innerHTML = '<div class="spinner"></div>جاري البحث...';
+            setLoadingState(false);
             searchBtn.disabled = false;
         }
     }
 
-    /**
-     * البحث في بيانات القرآن المحملة.
-     */
     function searchInQuran(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase().trim().replace(/[\u064B-\u0652\u0670\u0640]/g, '');
         if (normalizedSearchTerm.length === 0) return [];
         
-        const results = quranData.filter(ayah => {
-            const normalizedAyahText = ayah.ayahText.toLowerCase().replace(/[\u064B-\u0652\u0670\u0640]/g, '');
-            return normalizedAyahText.includes(normalizedSearchTerm);
-        });
-        
-        results.sort((a, b) => a.serialNumber - b.serialNumber);
-        
-        return results.map(ayah => ({
-            originalData: ayah,
-            formattedText: `﴿${ayah.ayahText}﴾ [${ayah.suraName}: ${ayah.ayahNumber}]`
-        }));
+        return quranData
+            .filter(ayah => ayah.ayahText.toLowerCase().replace(/[\u064B-\u0652\u0670\u0640]/g, '').includes(normalizedSearchTerm))
+            .sort((a, b) => a.serialNumber - b.serialNumber)
+            .map(ayah => ({
+                originalData: ayah,
+                formattedText: `﴿${ayah.ayahText}﴾ [${ayah.suraName}: ${ayah.ayahNumber}]`
+            }));
     }
 
-    /**
-     * جلب الترجمات لآية معينة من البيانات المحملة محليًا.
-     */
     function getLocalTranslations(suraNumber, ayahNumber) {
         const translations = {};
         const suraAyahKey = `${suraNumber}:${ayahNumber}`;
 
         for (const key in translationKeys) {
-            if (translationsData[key] && translationsData[key].has(suraAyahKey)) {
-                translations[key] = translationsData[key].get(suraAyahKey);
-            } else {
-                translations[key] = 'غير متوفرة';
-            }
+            translations[key] = (translationsData[key] && translationsData[key].get(suraAyahKey)) || 'غير متوفرة';
         }
         return translations;
     }
 
     // =========================================================================
-    // 5. دوال عرض الواجهة (UI Rendering Functions)
+    // 5. UI Rendering & Helper Functions
     // =========================================================================
 
     function displayPaginatedResults() {
         totalPages = Math.ceil(allSearchResults.length / resultsPerPage);
-        if (currentPage > totalPages) currentPage = totalPages || 1;
+        currentPage = Math.max(1, Math.min(currentPage, totalPages));
         
         const startIndex = (currentPage - 1) * resultsPerPage;
-        const endIndex = startIndex + resultsPerPage;
-        const currentPageResults = allSearchResults.slice(startIndex, endIndex);
+        const currentPageResults = allSearchResults.slice(startIndex, startIndex + resultsPerPage);
 
         displayResults(currentPageResults);
         updatePaginationInfo();
@@ -1046,55 +784,42 @@
     }
 
     function displayResults(results) {
-        resultsTableBody.innerHTML = ''; // مسح النتائج القديمة
-        
+        resultsTableBody.innerHTML = '';
         results.forEach(resultItem => {
             const row = resultsTableBody.insertRow();
-            row.dataset.suraNumber = resultItem.originalData.suraNumber;
-            row.dataset.ayahNumber = resultItem.originalData.ayahNumber;
+            const { suraNumber, ayahNumber } = resultItem.originalData;
+            
+            row.insertCell().innerHTML = `<div class="verse-text">${resultItem.formattedText}</div>`;
 
-            // خلية الآية القرآنية
-            const verseCell = row.insertCell();
-            verseCell.className = 'verse-text';
-            verseCell.innerHTML = resultItem.formattedText;
-
-            // خلايا الترجمات
-            const translations = translationsEnabled ? getLocalTranslations(resultItem.originalData.suraNumber, resultItem.originalData.ayahNumber) : {};
+            const translations = translationsEnabled ? getLocalTranslations(suraNumber, ayahNumber) : {};
             
             updateTranslationCell(row.insertCell(), translations.french_hameedullah);
             updateTranslationCell(row.insertCell(), translations.french_rashid);
             updateTranslationCell(row.insertCell(), translations.french_montada);
         });
-
         resultsDiv.style.display = 'block';
     }
 
-    function updateTranslationCell(cell, translationText) {
+    function updateTranslationCell(cell, text) {
         cell.className = 'translation-cell';
-        if (!translationsEnabled) {
+        if (!translationsEnabled || !text) {
             cell.innerHTML = '';
             return;
         }
-
-        if (translationText && translationText !== 'غير متوفرة') {
-            cell.innerHTML = `<div class="translation-text">${translationText}</div>`;
+        if (text !== 'غير متوفرة') {
+            cell.innerHTML = `<div class="translation-text">${text}</div>`;
         } else {
-            cell.innerHTML = `<div class="translation-unavailable">غير متوفرة</div>`;
+            cell.innerHTML = `<div class="translation-unavailable">${text}</div>`;
         }
     }
-    
-    function updatePaginationInfo() {
-        const resultsInfo = document.getElementById('resultsInfo');
-        const pageInfo = document.getElementById('pageInfo');
-        const currentPageDisplay = document.getElementById('currentPageDisplay');
 
-        resultsInfo.textContent = `تم العثور على ${allSearchResults.length} آية.`;
-        pageInfo.textContent = `الصفحة ${currentPage} من ${totalPages}`;
-        currentPageDisplay.textContent = `${currentPage} / ${totalPages}`;
-        
+    function updatePaginationInfo() {
+        document.getElementById('resultsInfo').textContent = `تم العثور على ${allSearchResults.length} آية.`;
+        document.getElementById('pageInfo').textContent = `الصفحة ${currentPage} من ${totalPages}`;
+        document.getElementById('currentPageDisplay').textContent = `${currentPage} / ${totalPages}`;
         updatePaginationButtons();
     }
-    
+
     function updatePaginationButtons() {
         document.getElementById('firstPageBtn').disabled = (currentPage === 1);
         document.getElementById('prevPageBtn').disabled = (currentPage === 1);
@@ -1102,9 +827,9 @@
         document.getElementById('lastPageBtn').disabled = (currentPage === totalPages);
     }
     
-    function goToPage(pageNumber) {
-        if (pageNumber >= 1 && pageNumber <= totalPages) {
-            currentPage = pageNumber;
+    function goToPage(page) {
+        if (page >= 1 && page <= totalPages) {
+            currentPage = page;
             displayPaginatedResults();
         }
     }
@@ -1115,12 +840,20 @@
         resultsDiv.style.display = 'none';
         noResultsDiv.style.display = 'none';
     }
+
+    function setLoadingState(isLoading, message = 'جاري البحث...') {
+        if (isLoading) {
+            loadingDiv.innerHTML = `<div class="spinner"></div>${message}`;
+            loadingDiv.style.display = 'block';
+        } else {
+            loadingDiv.style.display = 'none';
+        }
+    }
     
     function showError(message) {
         errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
         errorDiv.style.display = 'block';
     }
-
 </script>
 </body>
 </html>
