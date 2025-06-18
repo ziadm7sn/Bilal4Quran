@@ -114,7 +114,7 @@ async function loadQuranData() {
                     serialNumber: parseInt(parts[0], 10),
                     suraNumber: suraNumber,
                     ayahNumber: parseInt(parts[3], 10),
-                    ayahText: parts[4].replace(/^"|"$/g, ''),
+                    ayahText: parts[4].replace(/^"|"$/g, ''), // إزالة علامات الاقتباس
                     suraName: suraNames[suraNumber - 1] || `سورة ${suraNumber}`
                 });
             }
@@ -157,11 +157,11 @@ async function loadAllTranslationFiles() {
     });
     await Promise.all(loadPromises);
 }
-
+    
 // =========================================================================
 // 4. Core Logic Functions
 // =========================================================================
-
+    
 async function performSearch() {
     const searchTerm = searchInput.value.trim();
     if (!searchTerm) {
@@ -200,7 +200,8 @@ function searchInQuran(searchTerm) {
     const normalizedSearchTerm = searchTerm.toLowerCase().trim().replace(/[\u064B-\u0652\u0670\u0640]/g, '');
     if (normalizedSearchTerm.length === 0) return [];
     
-    // استخدام Regex لتظليل كل التطابقات
+    // Regex to find all occurrences of the search term, case-insensitive.
+    // It also escapes special regex characters in the search term.
     const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
     
     return quranData
@@ -308,6 +309,5 @@ function showError(message) {
     errorDiv.style.display = 'block';
 }
 </script>
-
 </body>
 </html>
