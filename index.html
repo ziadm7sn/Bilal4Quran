@@ -937,66 +937,38 @@
             [6236,604,114,6,"من الجنة والناس"]
         ];
 
-        // تحميل بيانات القرآن من ملف CSV أو البيانات المضمنة
-        async function loadQuranData() {
-            if (isDataLoaded) return true;
+        // تحميل بيانات القرآن من ملف CSV أو البيانات المضمنة// تحميل بيانات القرآن من ملف CSV
+async function loadQuranData() {
+    if (isDataLoaded) return;
 
-            try {
-                // محاولة تحميل من ملف CSV أولاً
-                try {
-                    const response = await fetch('orthographic_v1.0.csv');
-                    if (response.ok) {
-                        const csvText = await response.text();
-                        const lines = csvText.trim().split('\n');
-
-                        quranData = lines.map(line => {
-                            // تحليل CSV بطريقة أكثر دقة للتعامل مع الفواصل في النص
-                            const parts = line.split(',');
-                            const serialNumber = parseInt(parts[0]);
-                            const pageNumber = parseInt(parts[1]);
-                            const suraNumber = parseInt(parts[2]);
-                            const ayahNumber = parseInt(parts[3]);
-                            // النص هو كل ما تبقى بعد الأعمدة الأربعة الأولى
-                            const ayahText = parts.slice(4).join(',');
-
-                            return {
-                                serialNumber: serialNumber,
-                                pageNumber: pageNumber,
-                                suraNumber: suraNumber,
-                                ayahNumber: ayahNumber,
-                                ayahText: ayahText,
-                                suraName: suraNames[suraNumber - 1] || `سورة ${suraNumber}`
-                            };
-                        });
-
-                        console.log(`تم تحميل ${quranData.length} آية من ملف CSV`);
-                    } else {
-                        throw new Error('ملف CSV غير متاح');
-                    }
-                } catch (csvError) {
-                    console.warn('لا يمكن تحميل ملف CSV، استخدام البيانات المضمنة:', csvError.message);
-
-                    // استخدام البيانات المضمنة
-                    quranData = embeddedQuranData.map(row => ({
-                        serialNumber: row[0],
-                        pageNumber: row[1],
-                        suraNumber: row[2],
-                        ayahNumber: row[3],
-                        ayahText: row[4],
-                        suraName: suraNames[row[2] - 1] || `سورة ${row[2]}`
-                    }));
-
-                    console.log(`تم تحميل ${quranData.length} آية من البيانات المضمنة`);
-                }
-
-                isDataLoaded = true;
-                return true;
-
-            } catch (error) {
-                console.error('خطأ في تحميل بيانات القرآن:', error);
-                throw new Error('فشل في تحميل بيانات القرآن الكريم');
-            }
+    try {
+        const response = await fetch('orthographic_v1.0.csv');
+        if (!response.ok) {
+            throw new Error(`لا يمكن تحميل ملف orthographic_v1.0.csv: ${response.statusText}`);
         }
+        const csvText = await response.text();
+        const lines = csvText.trim().split('\n');
+
+        quranData = lines.map(line => {
+            const parts = line.split(',');
+            return {
+                serialNumber: parseInt(parts[0]),
+                pageNumber: parseInt(parts[1]),
+                suraNumber: parseInt(parts[2]),
+                ayahNumber: parseInt(parts[3]),
+                ayahText: parts.slice(4).join(','),
+                suraName: suraNames[parseInt(parts[2]) - 1] || `سورة ${parseInt(parts[2])}`
+            };
+        });
+
+        console.log(`تم تحميل ${quranData.length} آية من ملف CSV بنجاح.`);
+        isDataLoaded = true;
+    } catch (error) {
+        console.error('خطأ فادح في تحميل بيانات القرآن:', error);
+        showError('فشل تحميل بيانات القرآن الأساسية. لا يمكن متابعة البحث.');
+        throw error; // إيقاف التنفيذ
+    }
+}
 
         // البحث في بيانات القرآن المحلية
         function searchInQuran(searchTerm) {
