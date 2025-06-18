@@ -399,13 +399,6 @@
             padding: 10px;
             border-radius: var(--border-radius-small);
             background: rgba(231, 76, 60, 0.1);
-            cursor: pointer;
-            transition: var(--transition-fast);
-        }
-
-        .translation-error:hover {
-            background: rgba(231, 76, 60, 0.2);
-            transform: scale(1.02);
         }
 
         .translation-unavailable {
@@ -730,7 +723,6 @@
         <div class="header">
             <h1>البحث في القرآن الكريم</h1>
             <p>ابحث عن أي كلمة أو جملة في كتاب الله العزيز</p>
-            <p style="font-size: 14px; opacity: 0.8;">قاعدة بيانات محلية (عينة تجريبية)</p>
         </div>
 
         <div class="search-section">
@@ -749,18 +741,11 @@
                 </div>
 
                 <div class="control-group">
-                    <button id="clearCacheBtn" class="control-btn clear-btn">
-                        <span class="btn-icon">🗑️</span>
-                        مسح التخزين المؤقت
-                    </button>
-                </div>
-
-                <div class="control-group">
                     <label class="select-label">
                         النتائج لكل صفحة:
                         <select id="resultsPerPageSelect" class="control-select">
                             <option value="5">5</option>
-                            <option value="10">10</option>
+                            <option value="10" selected>10</option>
                             <option value="20">20</option>
                         </select>
                     </label>
@@ -813,612 +798,329 @@
         </div>
     </div>
 
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const loadingDiv = document.getElementById('loadingDiv');
-        const errorDiv = document.getElementById('errorDiv');
-        const resultsDiv = document.getElementById('resultsDiv');
-        const noResultsDiv = document.getElementById('noResultsDiv');
-        const resultsTableBody = document.getElementById('resultsTableBody');
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const loadingDiv = document.getElementById('loadingDiv');
+    const errorDiv = document.getElementById('errorDiv');
+    const resultsDiv = document.getElementById('resultsDiv');
+    const noResultsDiv = document.getElementById('noResultsDiv');
+    const resultsTableBody = document.getElementById('resultsTableBody');
+    const translationsToggle = document.getElementById('translationsToggle');
+    const resultsPerPageSelect = document.getElementById('resultsPerPageSelect');
 
-        // البحث عند الضغط على Enter
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
+    // =========================================================================
+    // 1. المتغيرات العامة والحالة (Global State)
+    // =========================================================================
 
-        // البحث عند الضغط على زر البحث
-        searchBtn.addEventListener('click', performSearch);
+    // بيانات القرآن
+    let quranData = [];
+    let isQuranDataLoaded = false;
+    
+    // بيانات الترجمات
+    let translationsEnabled = true;
+    let translationsData = {
+        french_hameedullah: null,
+        french_rashid: null,
+        french_montada: null
+    };
+    const translationKeys = {
+        french_hameedullah: 'محمد حميد الله',
+        french_rashid: 'رشيد معاش',
+        french_montada: 'محمد نبيل رضوان'
+    };
 
-        // معالج تفعيل/تعطيل الترجمات
-        const translationsToggle = document.getElementById('translationsToggle');
-        translationsToggle.addEventListener('change', function() {
-            translationsEnabled = this.checked;
-            console.log('الترجمات', translationsEnabled ? 'مفعلة' : 'معطلة');
-        });
+    // نظام الصفحات والبحث
+    let allSearchResults = [];
+    let currentPage = 1;
+    let resultsPerPage = 10;
+    
+    // أسماء السور
+    const suraNames = [
+        'الفاتحة', 'البقرة', 'آل عمران', 'النساء', 'المائدة', 'الأنعام', 'الأعراف', 'الأنفال', 'التوبة', 'يونس',
+        'هود', 'يوسف', 'الرعد', 'إبراهيم', 'الحجر', 'النحل', 'الإسراء', 'الكهف', 'مريم', 'طه',
+        'الأنبياء', 'الحج', 'المؤمنون', 'النور', 'الفرقان', 'الشعراء', 'النمل', 'القصص', 'العنكبوت', 'الروم',
+        'لقمان', 'السجدة', 'الأحزاب', 'سبأ', 'فاطر', 'يس', 'الصافات', 'ص', 'الزمر', 'غافر',
+        'فصلت', 'الشورى', 'الزخرف', 'الدخان', 'الجاثية', 'الأحقاف', 'محمد', 'الفتح', 'الحجرات', 'ق',
+        'الذاريات', 'الطور', 'النجم', 'القمر', 'الرحمن', 'الواقعة', 'الحديد', 'المجادلة', 'الحشر', 'الممتحنة',
+        'الصف', 'الجمعة', 'المنافقون', 'التغابن', 'الطلاق', 'التحريم', 'الملك', 'القلم', 'الحاقة', 'المعارج',
+        'نوح', 'الجن', 'المزمل', 'المدثر', 'القيامة', 'الإنسان', 'المرسلات', 'النبأ', 'النازعات', 'عبس',
+        'التكوير', 'الانفطار', 'المطففين', 'الانشقاق', 'البروج', 'الطارق', 'الأعلى', 'الغاشية', 'الفجر', 'البلد',
+        'الشمس', 'الليل', 'الضحى', 'الشرح', 'التين', 'العلق', 'القدر', 'البينة', 'الزلزلة', 'العاديات',
+        'القارعة', 'التكاثر', 'العصر', 'الهمزة', 'الفيل', 'قريش', 'الماعون', 'الكوثر', 'الكافرون', 'النصر',
+        'المسد', 'الإخلاص', 'الفلق', 'الناس'
+    ];
 
-        // معالج مسح التخزين المؤقت
-        const clearCacheBtn = document.getElementById('clearCacheBtn');
-        clearCacheBtn.addEventListener('click', function() {
-            translationCache.clear();
-            currentTranslationRequests.clear();
-            console.log('تم مسح التخزين المؤقت للترجمات');
-            alert('تم مسح التخزين المؤقت للترجمات');
-        });
+    // =========================================================================
+    // 2. ربط الأحداث (Event Listeners)
+    // =========================================================================
 
-        // معالج تغيير عدد النتائج لكل صفحة
-        const resultsPerPageSelect = document.getElementById('resultsPerPageSelect');
-        resultsPerPageSelect.addEventListener('change', function() {
-            resultsPerPage = parseInt(this.value);
-            currentPage = 1;
-            if (allSearchResults.length > 0) {
-                displayPaginatedResults();
-            }
-        });
+    searchBtn.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+    });
+    translationsToggle.addEventListener('change', () => {
+        translationsEnabled = translationsToggle.checked;
+        if (allSearchResults.length > 0) {
+            displayPaginatedResults(); // إعادة عرض النتائج لإظهار/إخفاء الترجمات
+        }
+    });
+    resultsPerPageSelect.addEventListener('change', () => {
+        resultsPerPage = parseInt(resultsPerPageSelect.value, 10);
+        currentPage = 1;
+        if (allSearchResults.length > 0) displayPaginatedResults();
+    });
+    document.getElementById('firstPageBtn').addEventListener('click', () => goToPage(1));
+    document.getElementById('prevPageBtn').addEventListener('click', () => goToPage(currentPage - 1));
+    document.getElementById('nextPageBtn').addEventListener('click', () => goToPage(currentPage + 1));
+    document.getElementById('lastPageBtn').addEventListener('click', () => goToPage(totalPages));
 
-        // معالجات أزرار التنقل
-        document.getElementById('firstPageBtn').addEventListener('click', () => goToPage(1));
-        document.getElementById('prevPageBtn').addEventListener('click', () => goToPage(currentPage - 1));
-        document.getElementById('nextPageBtn').addEventListener('click', () => goToPage(currentPage + 1));
-        document.getElementById('lastPageBtn').addEventListener('click', () => goToPage(totalPages));
+    // =========================================================================
+    // 3. دوال تحميل البيانات (Data Loading Functions)
+    // =========================================================================
 
+    /**
+     * تحميل بيانات القرآن من ملف CSV. يتم تحميلها مرة واحدة فقط.
+     */
+    async function loadQuranData() {
+        if (isQuranDataLoaded) return;
+        try {
+            const response = await fetch('orthographic_v1.0.csv');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const csvText = await response.text();
+            const lines = csvText.trim().split('\n');
+            
+            quranData = lines.map(line => {
+                const parts = line.split(',');
+                const suraNumber = parseInt(parts[2], 10);
+                return {
+                    serialNumber: parseInt(parts[0], 10),
+                    suraNumber: suraNumber,
+                    ayahNumber: parseInt(parts[3], 10),
+                    ayahText: parts.slice(4).join(','),
+                    suraName: suraNames[suraNumber - 1] || `سورة ${suraNumber}`
+                };
+            });
+            isQuranDataLoaded = true;
+            console.log(`تم تحميل ${quranData.length} آية بنجاح.`);
+        } catch (error) {
+            console.error("فشل تحميل بيانات القرآن:", error);
+            showError("فشل تحميل بيانات القرآن الأساسية. لا يمكن متابعة البحث.");
+            throw error;
+        }
+    }
 
-
-        // متغيرات عامة لتخزين بيانات القرآن
-        let quranData = [];
-        let isDataLoaded = false;
-
-        // متغيرات الترجمات
-        let translationsEnabled = true;
-        let translationCache = new Map();
-        let currentTranslationRequests = new Map();
-
-        // مفاتيح الترجمات الفرنسية
-        const translationKeys = {
-            french_hameedullah: 'محمد حميد الله',
-            french_rashid: 'رشيد معاش',
-            french_montada: 'محمد نبيل رضوان'
+    /**
+     * تحميل جميع ملفات الترجمة CSV وتحويلها إلى Map. يتم تحميل كل ملف مرة واحدة فقط.
+     */
+    async function loadAllTranslationFiles() {
+        const translationFilePaths = {
+            french_hameedullah: 'translations/french_hameedullah.csv',
+            french_rashid: 'translations/french_rashid.csv',
+            french_montada: 'translations/french_ridwan.csv' // تصحيح اسم الملف
         };
 
-        // متغيرات نظام الصفحات
-        let allSearchResults = [];
-        let currentPage = 1;
-        let resultsPerPage = 5;
-        let totalPages = 0;
+        const promises = Object.keys(translationFilePaths).map(async (key) => {
+            if (translationsData[key] === null) { // التحميل فقط إذا لم يكن محملاً
+                try {
+                    const response = await fetch(translationFilePaths[key]);
+                    if (!response.ok) throw new Error(`ملف ${key} غير موجود`);
+                    
+                    const csvText = await response.text();
+                    const lines = csvText.trim().split('\n');
+                    const translationMap = new Map();
+                    
+                    lines.forEach(line => {
+                        const parts = line.split(',');
+                        const suraAyahKey = `${parts[0]}:${parts[1]}`; // e.g., "2:144"
+                        const text = parts.slice(2).join(',');
+                        translationMap.set(suraAyahKey, text);
+                    });
+                    
+                    translationsData[key] = translationMap;
+                    console.log(`تم تحميل ملف ترجمة ${key} بنجاح.`);
+                } catch (error) {
+                    console.error(`خطأ في تحميل ملف الترجمة ${key}:`, error);
+                    translationsData[key] = new Map(); // وضع خريطة فارغة لتجنب الأخطاء
+                }
+            }
+        });
+        await Promise.all(promises);
+    }
 
-        // أسماء السور مرتبة حسب الرقم
-        const suraNames = [
-            'الفاتحة', 'البقرة', 'آل عمران', 'النساء', 'المائدة', 'الأنعام', 'الأعراف', 'الأنفال', 'التوبة', 'يونس',
-            'هود', 'يوسف', 'الرعد', 'إبراهيم', 'الحجر', 'النحل', 'الإسراء', 'الكهف', 'مريم', 'طه',
-            'الأنبياء', 'الحج', 'المؤمنون', 'النور', 'الفرقان', 'الشعراء', 'النمل', 'القصص', 'العنكبوت', 'الروم',
-            'لقمان', 'السجدة', 'الأحزاب', 'سبأ', 'فاطر', 'يس', 'الصافات', 'ص', 'الزمر', 'غافر',
-            'فصلت', 'الشورى', 'الزخرف', 'الدخان', 'الجاثية', 'الأحقاف', 'محمد', 'الفتح', 'الحجرات', 'ق',
-            'الذاريات', 'الطور', 'النجم', 'القمر', 'الرحمن', 'الواقعة', 'الحديد', 'المجادلة', 'الحشر', 'الممتحنة',
-            'الصف', 'الجمعة', 'المنافقون', 'التغابن', 'الطلاق', 'التحريم', 'الملك', 'القلم', 'الحاقة', 'المعارج',
-            'نوح', 'الجن', 'المزمل', 'المدثر', 'القيامة', 'الإنسان', 'المرسلات', 'النبأ', 'النازعات', 'عبس',
-            'التكوير', 'الانفطار', 'المطففين', 'الانشقاق', 'البروج', 'الطارق', 'الأعلى', 'الغاشية', 'الفجر', 'البلد',
-            'الشمس', 'الليل', 'الضحى', 'الشرح', 'التين', 'العلق', 'القدر', 'البينة', 'الزلزلة', 'العاديات',
-            'القارعة', 'التكاثر', 'العصر', 'الهمزة', 'الفيل', 'قريش', 'الماعون', 'الكوثر', 'الكافرون', 'النصر',
-            'المسد', 'الإخلاص', 'الفلق', 'الناس'
-        ];
+    // =========================================================================
+    // 4. دوال البحث والمنطق الأساسي (Core Logic)
+    // =========================================================================
 
-        // بيانات القرآن المضمنة (عينة للاختبار)
-        const embeddedQuranData = [
-            [1,1,1,1,"بسم الله الرحمن الرحيم"],
-            [2,1,1,2,"الحمد لله رب العالمين"],
-            [3,1,1,3,"الرحمن الرحيم"],
-            [4,1,1,4,"مالك يوم الدين"],
-            [5,1,1,5,"إياك نعبد وإياك نستعين"],
-            [6,1,1,6,"اهدنا الصراط المستقيم"],
-            [7,1,1,7,"صراط الذين أنعمت عليهم غير المغضوب عليهم ولا الضالين"],
-            [8,2,2,1,"الم"],
-            [9,2,2,2,"ذلك الكتاب لا ريب فيه هدى للمتقين"],
-            [10,2,2,3,"الذين يؤمنون بالغيب ويقيمون الصلاة ومما رزقناهم ينفقون"],
-            [15,3,2,8,"ومن الناس من يقول آمنا بالله وباليوم الآخر وما هم بمؤمنين"],
-            [16,3,2,9,"يخادعون الله والذين آمنوا وما يخدعون إلا أنفسهم وما يشعرون"],
-            [22,3,2,15,"الله يستهزئ بهم ويمدهم في طغيانهم يعمهون"],
-            [26,4,2,19,"أو كصيب من السماء فيه ظلمات ورعد وبرق يجعلون أصابعهم في آذانهم من الصواعق حذر الموت والله محيط بالكافرين"],
-            [27,4,2,20,"يكاد البرق يخطف أبصارهم كلما أضاء لهم مشوا فيه وإذا أظلم عليهم قاموا ولو شاء الله لذهب بسمعهم وأبصارهم إن الله على كل شيء قدير"],
-            [29,4,2,22,"الذي جعل لكم الأرض فراشا والسماء بناء وأنزل من السماء ماء فأخرج به من الثمرات رزقا لكم فلا تجعلوا لله أندادا وأنتم تعلمون"],
-            [35,5,2,28,"كيف تكفرون بالله وكنتم أمواتا فأحياكم ثم يميتكم ثم يحييكم ثم إليه ترجعون"],
-            [36,5,2,29,"هو الذي خلق لكم ما في الأرض جميعا ثم استوى إلى السماء فسواهن سبع سموات وهو بكل شيء عليم"],
-            [62,8,2,55,"وإذ قلتم ياموسى لن نؤمن لك حتى نرى الله جهرة فأخذتكم الصاعقة وأنتم تنظرون"],
-            [81,11,2,74,"ثم قست قلوبكم من بعد ذلك فهي كالحجارة أو أشد قسوة وإن من الحجارة لما يتفجر منه الأنهار وإن منها لما يشقق فيخرج منه الماء وإن منها لما يهبط من خشية الله وما الله بغافل عما تعملون"],
-            [170,24,2,163,"وإلهكم إله واحد لا إله إلا هو الرحمن الرحيم"],
-            [262,42,2,255,"الله لا إله إلا هو الحي القيوم لا تأخذه سنة ولا نوم له ما في السموات وما في الأرض من ذا الذي يشفع عنده إلا بإذنه يعلم ما بين أيديهم وما خلفهم ولا يحيطون بشيء من علمه إلا بما شاء وسع كرسيه السموات والأرض ولا يئوده حفظهما وهو العلي العظيم"],
-            [295,50,3,2,"الله لا إله إلا هو الحي القيوم"],
-            [6231,604,114,1,"قل أعوذ برب الناس"],
-            [6232,604,114,2,"ملك الناس"],
-            [6233,604,114,3,"إله الناس"],
-            [6234,604,114,4,"من شر الوسواس الخناس"],
-            [6235,604,114,5,"الذي يوسوس في صدور الناس"],
-            [6236,604,114,6,"من الجنة والناس"]
-        ];
-
-        // تحميل بيانات القرآن من ملف CSV أو البيانات المضمنة// تحميل بيانات القرآن من ملف CSV
-async function loadQuranData() {
-    if (isDataLoaded) return;
-
-    try {
-        const response = await fetch('orthographic_v1.0.csv');
-        if (!response.ok) {
-            throw new Error(`لا يمكن تحميل ملف orthographic_v1.0.csv: ${response.statusText}`);
+    /**
+     * تنفيذ عملية البحث الرئيسية.
+     */
+    async function performSearch() {
+        const searchTerm = searchInput.value.trim();
+        if (!searchTerm) {
+            alert('يرجى إدخال كلمة أو جملة للبحث');
+            return;
         }
-        const csvText = await response.text();
-        const lines = csvText.trim().split('\n');
 
-        quranData = lines.map(line => {
-            const parts = line.split(',');
-            return {
-                serialNumber: parseInt(parts[0]),
-                pageNumber: parseInt(parts[1]),
-                suraNumber: parseInt(parts[2]),
-                ayahNumber: parseInt(parts[3]),
-                ayahText: parts.slice(4).join(','),
-                suraName: suraNames[parseInt(parts[2]) - 1] || `سورة ${parseInt(parts[2])}`
-            };
+        hideAllResults();
+        loadingDiv.style.display = 'block';
+        searchBtn.disabled = true;
+
+        try {
+            await loadQuranData(); // التأكد من تحميل بيانات القرآن
+            const results = searchInQuran(searchTerm);
+
+            if (results.length > 0) {
+                allSearchResults = results;
+                currentPage = 1;
+                if (translationsEnabled) {
+                    loadingDiv.innerHTML = '<div class="spinner"></div>جاري تحميل بيانات الترجمات...';
+                    await loadAllTranslationFiles();
+                }
+                displayPaginatedResults();
+            } else {
+                noResultsDiv.style.display = 'block';
+            }
+        } catch (error) {
+            showError(`حدث خطأ أثناء البحث: ${error.message}`);
+        } finally {
+            loadingDiv.style.display = 'none';
+            loadingDiv.innerHTML = '<div class="spinner"></div>جاري البحث...';
+            searchBtn.disabled = false;
+        }
+    }
+
+    /**
+     * البحث في بيانات القرآن المحملة.
+     */
+    function searchInQuran(searchTerm) {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim().replace(/[\u064B-\u0652\u0670\u0640]/g, '');
+        if (normalizedSearchTerm.length === 0) return [];
+        
+        const results = quranData.filter(ayah => {
+            const normalizedAyahText = ayah.ayahText.toLowerCase().replace(/[\u064B-\u0652\u0670\u0640]/g, '');
+            return normalizedAyahText.includes(normalizedSearchTerm);
+        });
+        
+        results.sort((a, b) => a.serialNumber - b.serialNumber);
+        
+        return results.map(ayah => ({
+            originalData: ayah,
+            formattedText: `﴿${ayah.ayahText}﴾ [${ayah.suraName}: ${ayah.ayahNumber}]`
+        }));
+    }
+
+    /**
+     * جلب الترجمات لآية معينة من البيانات المحملة محليًا.
+     */
+    function getLocalTranslations(suraNumber, ayahNumber) {
+        const translations = {};
+        const suraAyahKey = `${suraNumber}:${ayahNumber}`;
+
+        for (const key in translationKeys) {
+            if (translationsData[key] && translationsData[key].has(suraAyahKey)) {
+                translations[key] = translationsData[key].get(suraAyahKey);
+            } else {
+                translations[key] = 'غير متوفرة';
+            }
+        }
+        return translations;
+    }
+
+    // =========================================================================
+    // 5. دوال عرض الواجهة (UI Rendering Functions)
+    // =========================================================================
+
+    function displayPaginatedResults() {
+        totalPages = Math.ceil(allSearchResults.length / resultsPerPage);
+        if (currentPage > totalPages) currentPage = totalPages || 1;
+        
+        const startIndex = (currentPage - 1) * resultsPerPage;
+        const endIndex = startIndex + resultsPerPage;
+        const currentPageResults = allSearchResults.slice(startIndex, endIndex);
+
+        displayResults(currentPageResults);
+        updatePaginationInfo();
+        document.getElementById('paginationDiv').style.display = totalPages > 1 ? 'block' : 'none';
+    }
+
+    function displayResults(results) {
+        resultsTableBody.innerHTML = ''; // مسح النتائج القديمة
+        
+        results.forEach(resultItem => {
+            const row = resultsTableBody.insertRow();
+            row.dataset.suraNumber = resultItem.originalData.suraNumber;
+            row.dataset.ayahNumber = resultItem.originalData.ayahNumber;
+
+            // خلية الآية القرآنية
+            const verseCell = row.insertCell();
+            verseCell.className = 'verse-text';
+            verseCell.innerHTML = resultItem.formattedText;
+
+            // خلايا الترجمات
+            const translations = translationsEnabled ? getLocalTranslations(resultItem.originalData.suraNumber, resultItem.originalData.ayahNumber) : {};
+            
+            updateTranslationCell(row.insertCell(), translations.french_hameedullah);
+            updateTranslationCell(row.insertCell(), translations.french_rashid);
+            updateTranslationCell(row.insertCell(), translations.french_montada);
         });
 
-        console.log(`تم تحميل ${quranData.length} آية من ملف CSV بنجاح.`);
-        isDataLoaded = true;
-    } catch (error) {
-        console.error('خطأ فادح في تحميل بيانات القرآن:', error);
-        showError('فشل تحميل بيانات القرآن الأساسية. لا يمكن متابعة البحث.');
-        throw error; // إيقاف التنفيذ
+        resultsDiv.style.display = 'block';
     }
-}
 
-        // البحث في بيانات القرآن المحلية
-        function searchInQuran(searchTerm) {
-            if (!isDataLoaded || quranData.length === 0) {
-                throw new Error('بيانات القرآن غير محملة');
-            }
-
-            // تنظيف وتطبيع نص البحث
-            const normalizedSearchTerm = searchTerm
-                .toLowerCase()
-                .trim()
-                // إزالة التشكيل للبحث الأفضل
-                .replace(/[\u064B-\u0652\u0670\u0640]/g, '');
-
-            if (normalizedSearchTerm.length === 0) {
-                return [];
-            }
-
-            const results = quranData.filter(ayah => {
-                // تطبيع نص الآية للمقارنة
-                const normalizedAyahText = ayah.ayahText
-                    .toLowerCase()
-                    .replace(/[\u064B-\u0652\u0670\u0640]/g, '');
-
-                // البحث الجزئي غير الحساس للحالة
-                return normalizedAyahText.includes(normalizedSearchTerm);
-            });
-
-            // ترتيب النتائج حسب الرقم التسلسلي
-            results.sort((a, b) => a.serialNumber - b.serialNumber);
-
-            // إرجاع البيانات الكاملة بدلاً من النص المنسق فقط
-            return results.map(ayah => ({
-                originalData: ayah,
-                formattedText: `﴿${ayah.ayahText}﴾ [${ayah.suraName}: ${ayah.ayahNumber}]`
-            }));
+    function updateTranslationCell(cell, translationText) {
+        cell.className = 'translation-cell';
+        if (!translationsEnabled) {
+            cell.innerHTML = '';
+            return;
         }
 
-        async function performSearch() {
-            const searchTerm = searchInput.value.trim();
-
-            if (!searchTerm) {
-                alert('يرجى إدخال كلمة أو جملة للبحث');
-                return;
-            }
-
-            // إخفاء النتائج السابقة وإظهار التحميل
-            hideAllResults();
-            loadingDiv.style.display = 'block';
-            searchBtn.disabled = true;
-
-            try {
-                // تحميل بيانات القرآن إذا لم تكن محملة
-                if (!isDataLoaded) {
-                    // تحديث رسالة التحميل
-                    loadingDiv.innerHTML = '<div class="spinner"></div>جاري تحميل بيانات القرآن الكريم...';
-                    await loadQuranData();
-                    loadingDiv.innerHTML = '<div class="spinner"></div>جاري البحث...';
-                }
-
-                // البحث في البيانات المحلية
-                const results = searchInQuran(searchTerm);
-
-                loadingDiv.style.display = 'none';
-                searchBtn.disabled = false;
-
-                if (results.length > 0) {
-                    // حفظ جميع النتائج
-                    allSearchResults = results;
-                    currentPage = 1;
-
-                    // عرض النتائج مع نظام الصفحات
-                    displayPaginatedResults();
-                } else {
-                    noResultsDiv.style.display = 'block';
-                }
-
-            } catch (error) {
-                loadingDiv.style.display = 'none';
-                searchBtn.disabled = false;
-                showError(`حدث خطأ أثناء البحث: ${error.message}`);
-                console.error('Search error:', error);
-            }
+        if (translationText && translationText !== 'غير متوفرة') {
+            cell.innerHTML = `<div class="translation-text">${translationText}</div>`;
+        } else {
+            cell.innerHTML = `<div class="translation-unavailable">غير متوفرة</div>`;
         }
+    }
+    
+    function updatePaginationInfo() {
+        const resultsInfo = document.getElementById('resultsInfo');
+        const pageInfo = document.getElementById('pageInfo');
+        const currentPageDisplay = document.getElementById('currentPageDisplay');
 
-
-
-        // جلب ترجمة واحدة من API مع تحسينات
-        async function fetchSingleTranslation(translationKey, suraNumber, ayahNumber, retryCount = 0) {
-            const cacheKey = `${translationKey}_${suraNumber}_${ayahNumber}`;
-
-            // التحقق من التخزين المؤقت
-            if (translationCache.has(cacheKey)) {
-                console.log(`✅ استخدام الترجمة المحفوظة: ${translationKey} ${suraNumber}:${ayahNumber}`);
-                return translationCache.get(cacheKey);
-            }
-
-            // التحقق من الطلبات الجارية
-            if (currentTranslationRequests.has(cacheKey)) {
-                console.log(`⏳ انتظار الطلب الجاري: ${translationKey} ${suraNumber}:${ayahNumber}`);
-                return currentTranslationRequests.get(cacheKey);
-            }
-
-            const proxyUrl = 'https://api.allorigins.win/raw?url=';
-            const originalUrl = `https://quranenc.com/api/v1/translation/aya/${translationKey}/${suraNumber}/${ayahNumber}`;
-            const url = proxyUrl + encodeURIComponent(originalUrl);
-            console.log(`🌐 جلب ترجمة جديدة (محاولة ${retryCount + 1}): ${url}`);
-
-            // إنشاء AbortController للتحكم في timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 ثواني timeout
-
-            const translationPromise = fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                    // إزالة Content-Type لأنه غير مطلوب في GET requests
-                },
-                signal: controller.signal
-                // إزالة mode: 'cors' للسماح للمتصفح بالتعامل مع CORS تلقائياً
-            })
-                .then(response => {
-                    clearTimeout(timeoutId);
-                    console.log(`📡 استجابة API ${translationKey}: ${response.status} ${response.statusText}`);
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP_${response.status}_${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log(`📖 بيانات الترجمة ${translationKey}:`, data);
-
-                    // استخراج الترجمة من البيانات
-                    let translation = 'غير متاح';
-                    if (data.result && data.result.translation) {
-                        translation = data.result.translation;
-                    } else if (data.translation) {
-                        translation = data.translation;
-                    } else if (data.text) {
-                        translation = data.text;
-                    }
-
-                    // حفظ في التخزين المؤقت
-                    translationCache.set(cacheKey, translation);
-                    currentTranslationRequests.delete(cacheKey);
-                    console.log(`✅ تم حفظ الترجمة: ${translationKey} ${suraNumber}:${ayahNumber}`);
-                    return translation;
-                })
-                .catch(async (error) => {
-                    clearTimeout(timeoutId);
-                    currentTranslationRequests.delete(cacheKey);
-
-                    console.error(`❌ خطأ في جلب الترجمة ${translationKey} ${suraNumber}:${ayahNumber}:`, error);
-
-                    // تحديد نوع الخطأ
-                    let errorMessage = 'خطأ غير معروف';
-
-                    if (error.name === 'AbortError') {
-                        errorMessage = 'انتهت مهلة الطلب';
-                    } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                        errorMessage = 'خطأ شبكة';
-                    } else if (error.message.includes('CORS')) {
-                        errorMessage = 'خطأ CORS';
-                    } else if (error.message.includes('HTTP_404')) {
-                        errorMessage = 'ترجمة غير موجودة';
-                    } else if (error.message.includes('HTTP_500')) {
-                        errorMessage = 'خطأ في الخادم';
-                    } else if (error.message.includes('HTTP_')) {
-                        errorMessage = `خطأ HTTP: ${error.message.split('_')[1]}`;
-                    } else {
-                        errorMessage = error.message;
-                    }
-
-                    // إعادة المحاولة للأخطاء المؤقتة
-                    if (retryCount < 2 && (
-                        error.name === 'AbortError' ||
-                        error.message.includes('Failed to fetch') ||
-                        error.message.includes('HTTP_5')
-                    )) {
-                        console.log(`🔄 إعادة المحاولة ${retryCount + 1} للترجمة ${translationKey}`);
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // تأخير متزايد
-                        return fetchSingleTranslation(translationKey, suraNumber, ayahNumber, retryCount + 1);
-                    }
-
-                    return `❌ ${errorMessage}`;
-                });
-
-            currentTranslationRequests.set(cacheKey, translationPromise);
-            return translationPromise;
+        resultsInfo.textContent = `تم العثور على ${allSearchResults.length} آية.`;
+        pageInfo.textContent = `الصفحة ${currentPage} من ${totalPages}`;
+        currentPageDisplay.textContent = `${currentPage} / ${totalPages}`;
+        
+        updatePaginationButtons();
+    }
+    
+    function updatePaginationButtons() {
+        document.getElementById('firstPageBtn').disabled = (currentPage === 1);
+        document.getElementById('prevPageBtn').disabled = (currentPage === 1);
+        document.getElementById('nextPageBtn').disabled = (currentPage === totalPages);
+        document.getElementById('lastPageBtn').disabled = (currentPage === totalPages);
+    }
+    
+    function goToPage(pageNumber) {
+        if (pageNumber >= 1 && pageNumber <= totalPages) {
+            currentPage = pageNumber;
+            displayPaginatedResults();
         }
+    }
+    
+    function hideAllResults() {
+        loadingDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+        resultsDiv.style.display = 'none';
+        noResultsDiv.style.display = 'none';
+    }
+    
+    function showError(message) {
+        errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
+        errorDiv.style.display = 'block';
+    }
 
-        // جلب جميع الترجمات لآية واحدة
-        async function fetchAllTranslations(suraNumber, ayahNumber) {
-            const translations = {};
-
-            try {
-                const promises = Object.keys(translationKeys).map(async (key) => {
-                    const translation = await fetchSingleTranslation(key, suraNumber, ayahNumber);
-                    translations[key] = translation;
-                });
-
-                await Promise.all(promises);
-                return translations;
-            } catch (error) {
-                console.error('خطأ في جلب الترجمات:', error);
-                return {
-                    french_hameedullah: 'خطأ في التحميل',
-                    french_rashid: 'خطأ في التحميل',
-                    french_montada: 'خطأ في التحميل'
-                };
-            }
-        }
-
-        // تحديث خلية ترجمة في الجدول مع مؤشرات حالة محسنة
-        function updateTranslationCell(row, columnIndex, translation, translationName) {
-            const cell = row.cells[columnIndex];
-            if (!cell) return;
-
-            // إزالة الفئات السابقة
-            cell.classList.remove('loading', 'error', 'success', 'warning', 'retry-available');
-
-            if (translation.includes('⏳') || translation.includes('جاري التحميل')) {
-                cell.classList.add('loading');
-                cell.innerHTML = `<div class="loading-spinner" style="color: #007bff;">${translation}</div>`;
-            } else if (translation.includes('❌') || translation.includes('خطأ شبكة') || translation.includes('خطأ CORS') || translation.includes('انتهت مهلة')) {
-                cell.classList.add('error', 'retry-available');
-                cell.innerHTML = `
-                    <div class="translation-error" style="color: #dc3545; cursor: pointer;"
-                         onclick="retryTranslation(this, ${columnIndex})"
-                         title="اضغط لإعادة المحاولة">
-                        ${translation} 🔄
-                    </div>`;
-            } else if (translation === 'غير متاح' || translation === 'ترجمة غير موجودة') {
-                cell.classList.add('warning');
-                cell.innerHTML = `<div class="translation-unavailable" style="color: #ffc107;">⚠️ ${translation}</div>`;
-            } else if (translation === 'خطأ في التحميل') {
-                cell.classList.add('error');
-                cell.innerHTML = `<div class="translation-error" style="color: #dc3545;">${translation}</div>`;
-            } else {
-                cell.classList.add('success');
-                cell.innerHTML = `<div class="translation-text">${translation}</div>`;
-            }
-
-            cell.title = `${translationName}: ${translation}`;
-        }
-
-        // عرض النتائج مع نظام الصفحات
-        function displayPaginatedResults() {
-            // حساب إجمالي الصفحات
-            totalPages = Math.ceil(allSearchResults.length / resultsPerPage);
-
-            // التأكد من أن الصفحة الحالية صحيحة
-            if (currentPage > totalPages) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
-
-            // حساب النتائج للصفحة الحالية
-            const startIndex = (currentPage - 1) * resultsPerPage;
-            const endIndex = startIndex + resultsPerPage;
-            const currentPageResults = allSearchResults.slice(startIndex, endIndex);
-
-            // عرض النتائج
-            displayResults(currentPageResults);
-
-            // تحديث معلومات الصفحات
-            updatePaginationInfo();
-
-            // إظهار أزرار التنقل
-            document.getElementById('paginationDiv').style.display = totalPages > 1 ? 'block' : 'none';
-        }
-
-        function displayResults(results) {
-            resultsTableBody.innerHTML = '';
-
-            results.forEach((resultItem, index) => {
-                const row = document.createElement('tr');
-
-                // إضافة البيانات الأصلية كخاصية في الصف للوصول إليها لاحقاً
-                row.dataset.suraNumber = resultItem.originalData.suraNumber;
-                row.dataset.ayahNumber = resultItem.originalData.ayahNumber;
-                row.dataset.serialNumber = resultItem.originalData.serialNumber;
-
-                row.innerHTML = `
-                    <td class="verse-text">${resultItem.formattedText}</td>
-                    <td class="translation-cell"><div class="loading-spinner">⏳ جاري التحميل...</div></td>
-                    <td class="translation-cell"><div class="loading-spinner">⏳ جاري التحميل...</div></td>
-                    <td class="translation-cell"><div class="loading-spinner">⏳ جاري التحميل...</div></td>
-                `;
-                resultsTableBody.appendChild(row);
-
-                // جلب الترجمات إذا كانت مفعلة
-                if (translationsEnabled) {
-                    loadTranslationsForVerse(resultItem.originalData, row, index);
-                }
-            });
-
-            resultsDiv.style.display = 'block';
-        }
-
-        // تحديث معلومات الصفحات
-        function updatePaginationInfo() {
-            const resultsInfo = document.getElementById('resultsInfo');
-            const pageInfo = document.getElementById('pageInfo');
-            const currentPageDisplay = document.getElementById('currentPageDisplay');
-
-            // معلومات النتائج الإجمالية
-            let infoText = `تم العثور على ${allSearchResults.length} آية`;
-            if (resultsPerPage < allSearchResults.length) {
-                const startResult = (currentPage - 1) * resultsPerPage + 1;
-                const endResult = Math.min(currentPage * resultsPerPage, allSearchResults.length);
-                infoText += ` - عرض ${startResult}-${endResult}`;
-            }
-            if (translationsEnabled) {
-                infoText += ` - جاري تحميل الترجمات الفرنسية...`;
-            }
-            resultsInfo.textContent = infoText;
-
-            // معلومات الصفحة
-            pageInfo.textContent = `الصفحة ${currentPage} من ${totalPages}`;
-            currentPageDisplay.textContent = `${currentPage} / ${totalPages}`;
-
-            // تحديث حالة الأزرار
-            updatePaginationButtons();
-        }
-
-        // تحديث حالة أزرار التنقل
-        function updatePaginationButtons() {
-            document.getElementById('firstPageBtn').disabled = currentPage === 1;
-            document.getElementById('prevPageBtn').disabled = currentPage === 1;
-            document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
-            document.getElementById('lastPageBtn').disabled = currentPage === totalPages;
-        }
-
-        // الانتقال لصفحة محددة
-        function goToPage(pageNumber) {
-            if (pageNumber >= 1 && pageNumber <= totalPages && pageNumber !== currentPage) {
-                currentPage = pageNumber;
-                displayPaginatedResults();
-            }
-        }
-
-        // تحميل الترجمات لآية واحدة
-        async function loadTranslationsForVerse(ayahData, row, index) {
-            try {
-                // التحقق من صحة البيانات المستخرجة
-                if (!ayahData || !ayahData.suraNumber || !ayahData.ayahNumber) {
-                    console.error('بيانات الآية غير صحيحة:', ayahData);
-                    updateAllTranslationCells(row, 'بيانات غير صحيحة');
-                    return;
-                }
-
-                const suraNumber = parseInt(ayahData.suraNumber);
-                const ayahNumber = parseInt(ayahData.ayahNumber);
-
-                // التحقق من صحة الأرقام
-                if (isNaN(suraNumber) || isNaN(ayahNumber) || suraNumber < 1 || suraNumber > 114 || ayahNumber < 1) {
-                    console.error('أرقام السورة أو الآية غير صحيحة:', { suraNumber, ayahNumber });
-                    updateAllTranslationCells(row, 'أرقام غير صحيحة');
-                    return;
-                }
-
-                console.log(`جلب الترجمات للسورة ${suraNumber} الآية ${ayahNumber} (${ayahData.suraName})`);
-
-                // جلب الترجمات باستخدام البيانات المستخرجة مباشرة
-                const translations = await fetchAllTranslations(suraNumber, ayahNumber);
-
-                // تحديث الخلايا
-                updateTranslationCell(row, 1, translations.french_hameedullah, translationKeys.french_hameedullah);
-                updateTranslationCell(row, 2, translations.french_rashid, translationKeys.french_rashid);
-                updateTranslationCell(row, 3, translations.french_montada, translationKeys.french_montada);
-
-                console.log(`تم تحميل الترجمات بنجاح للسورة ${suraNumber} الآية ${ayahNumber}`);
-
-            } catch (error) {
-                console.error('خطأ في تحميل الترجمات للآية:', error);
-                updateAllTranslationCells(row, 'خطأ في التحميل');
-            }
-        }
-
-        // إعادة محاولة ترجمة واحدة
-        async function retryTranslation(element, columnIndex) {
-            const cell = element.closest('td');
-            const row = cell.closest('tr');
-
-            // استخراج معلومات الآية من dataset
-            const suraNumber = parseInt(row.dataset.suraNumber);
-            const ayahNumber = parseInt(row.dataset.ayahNumber);
-
-            if (isNaN(suraNumber) || isNaN(ayahNumber)) {
-                console.error('لا يمكن استخراج معلومات الآية للإعادة');
-                return;
-            }
-
-            const translationKey = Object.keys(translationKeys)[columnIndex - 1];
-            const translationName = Object.values(translationKeys)[columnIndex - 1];
-
-            if (!translationKey) {
-                console.error('مفتاح الترجمة غير صحيح:', columnIndex);
-                return;
-            }
-
-            // إظهار حالة التحميل
-            updateTranslationCell(row, columnIndex, '⏳ جاري إعادة المحاولة...', translationName);
-
-            try {
-                // مسح التخزين المؤقت لهذه الترجمة
-                const cacheKey = `${translationKey}_${suraNumber}_${ayahNumber}`;
-                translationCache.delete(cacheKey);
-                currentTranslationRequests.delete(cacheKey);
-
-                console.log(`🔄 إعادة محاولة جلب الترجمة: ${translationKey} ${suraNumber}:${ayahNumber}`);
-
-                // جلب الترجمة مرة أخرى
-                const translation = await fetchSingleTranslation(translationKey, suraNumber, ayahNumber);
-                updateTranslationCell(row, columnIndex, translation, translationName);
-
-            } catch (error) {
-                console.error('خطأ في إعادة المحاولة:', error);
-                updateTranslationCell(row, columnIndex, `❌ فشل في إعادة المحاولة`, translationName);
-            }
-        }
-
-        // استخراج بيانات الآية من الصف (وظيفة مساعدة)
-        function extractAyahDataFromRow(row) {
-            return {
-                suraNumber: parseInt(row.dataset.suraNumber),
-                ayahNumber: parseInt(row.dataset.ayahNumber),
-                serialNumber: parseInt(row.dataset.serialNumber)
-            };
-        }
-
-        // تحديث جميع خلايا الترجمة برسالة واحدة
-        function updateAllTranslationCells(row, message) {
-            for (let i = 1; i <= 3; i++) {
-                const translationName = Object.values(translationKeys)[i - 1];
-                updateTranslationCell(row, i, message, translationName);
-            }
-        }
-
-        function hideAllResults() {
-            loadingDiv.style.display = 'none';
-            errorDiv.style.display = 'none';
-            resultsDiv.style.display = 'none';
-            noResultsDiv.style.display = 'none';
-        }
-
-        function showError(message) {
-            errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
-            errorDiv.style.display = 'block';
-        }
-    </script>
+</script>
 </body>
 </html>
