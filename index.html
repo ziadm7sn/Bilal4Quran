@@ -1100,7 +1100,9 @@
                 return currentTranslationRequests.get(cacheKey);
             }
 
-            const url = `https://quranenc.com/api/v1/translation/aya/${translationKey}/${suraNumber}/${ayahNumber}`;
+            const proxyUrl = 'https://api.allorigins.win/raw?url=';
+            const originalUrl = `https://quranenc.com/api/v1/translation/aya/${translationKey}/${suraNumber}/${ayahNumber}`;
+            const url = proxyUrl + encodeURIComponent(originalUrl);
             console.log(`🌐 جلب ترجمة جديدة (محاولة ${retryCount + 1}): ${url}`);
 
             // إنشاء AbortController للتحكم في timeout
